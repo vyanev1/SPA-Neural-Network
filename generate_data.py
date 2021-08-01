@@ -22,9 +22,10 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame):
     curvature_data, positional_data = get_curvature_and_positional_data()
     pressure_curvature_d = []
     pressure_position_d = []
+    pressure_force_d = []
     row_num = 0
     for exp_date in os.listdir(pressure_data_dir):
-        if exp_date.startswith('_') or exp_date != "11-06-21":
+        if exp_date != "23-07-21":
             continue
         exp_date_path = os.path.join(pressure_data_dir, exp_date)
         for exp_num in os.listdir(exp_date_path):
@@ -34,6 +35,7 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame):
                 mat_contents = scipy.io.matlab.loadmat(data_path)
 
                 pressure_all_timestamps = [item.flat[0] for item in mat_contents["pressure"]]
+                force_all_timestamps = [item.flat[0] for item in mat_contents["ForceData"]]
 
                 exp_pressure_curvature_dict = {
                     "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
@@ -43,16 +45,21 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame):
                     "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
                     **positional_data.drop("image", axis=1).iloc[row_num].to_dict()
                 }
+                exp_pressure_force_dict = {
+                    "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
+                    "force": max(0, sum(force_all_timestamps) / len(force_all_timestamps))
+                }
 
                 pressure_curvature_d.append(exp_pressure_curvature_dict)
                 pressure_position_d.append(exp_pressure_position_dict)
+                pressure_force_d.append(exp_pressure_force_dict)
 
                 row_num += 1
-    return pd.DataFrame(pressure_curvature_d), pd.DataFrame(pressure_position_d)
+    return pd.DataFrame(pressure_curvature_d), pd.DataFrame(pressure_position_d), pd.DataFrame(pressure_force_d)
 
 
 if __name__ == "__main__":
-    pressure_curvature, pressure_position = get_combined_data()
+    pressure_curvature, pressure_position, pressure_force = get_combined_data()
 
     pressures, positional_data = split_input_output(pressure_position)
 
@@ -70,3 +77,5 @@ if __name__ == "__main__":
         print(pressure_curvature)
         print("Actual positions:")
         print(pressure_position_formatted)
+        print("Actual force outputs")
+        print(pressure_force)
