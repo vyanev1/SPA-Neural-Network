@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import math
 
+from HSVFilter import HSVFilter
 from circle_fit import circle_fit_by_taubin
 
 directory = os.path.abspath("./Data/Pictures/")
@@ -89,10 +90,14 @@ def angle(pt1, pt2, pt3) -> float:
     return math.degrees(ang_rads)
 
 
+def callback(x):
+    pass
+
+
 def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
     curvature_d, positional_d = [], []
     for exp_date in os.listdir(directory):
-        if exp_date != "SoftAct11-06-21":
+        if exp_date != "23-07-21":
             continue
         exp_date_path = os.path.join(directory, exp_date)
         for exp_num in os.listdir(exp_date_path):
@@ -103,14 +108,13 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 # Load the image
                 img = cv2.imread(img_path)
 
-                # Crop the image if it's from the second set
-                if exp_date == "SoftAct11-06-21":
-                    margin = 200
-                    img = img[margin:-margin, margin:-margin]
+                x_margin = 600
+                y_margin = 200
+                img = img[y_margin:-y_margin, x_margin:-x_margin]
 
                 # Apply contrast
-                alpha = 1.1  # Contrast control (1.0-3.0)
-                beta = -30  # Brightness control (0-100)
+                alpha = 1.1  # Contrast control (1.0 - 3.0)
+                beta = -30  # Brightness control (0 - 100)
                 img = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
 
                 # Set image size = 1/2 * original size
@@ -118,9 +122,16 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 new_height, new_width = int(height / 2), int(width / 2)
                 img = cv2.resize(img, (new_width, new_height))
 
+                # Opens HSVFilter color picker to help fine tune the threshold values
+                images_to_adjust = []
+                if image_name in images_to_adjust:
+                    window = HSVFilter(img)
+                    window.show()
+                    cv2.destroyAllWindows()
+
                 # Set lower and upper range for the green marker
-                lower_range = np.array([70, 50, 90])
-                upper_range = np.array([100, 255, 240])
+                lower_range = np.array([70, 65, 115])
+                upper_range = np.array([95, 255, 255])
 
                 # Get only the marker areas from the image using a color threshold
                 mask = cv2.inRange(cv2.cvtColor(img, cv2.COLOR_BGR2HSV), lower_range, upper_range)
@@ -128,6 +139,11 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 # Dilate mask
                 kernel = np.ones((5, 5), np.uint8)
                 mask = cv2.dilate(mask, kernel, iterations=1)
+
+                # Debugging
+                # img[mask == 255] = (0, 0, 255)
+                # cv2.imshow(f"{image_name}", img)
+                # cv2.waitKey(0)
 
                 # Find contours in the thresholded image
                 cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -183,22 +199,10 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     ** {f"chamber {i+1} X": coords_X[i] - coords_X[0] for i in range(2, 12)},
                     ** {f"chamber {i+1} Y": coords_Y[i] - coords_Y[0] for i in range(2, 12)}
                 })
-
-                # Debugging:
-                # cv2.imshow('Image', img)                                      # TODO: Remove this later
-                # cv2.imshow('Mask', mask)                                      # TODO: Remove this later
-                # cv2.imshow(f"{image_name} - dots", blank_img)                 # TODO: Remove this later
-                # cv2.waitKey(0)
     return pd.DataFrame(curvature_d), pd.DataFrame(positional_d)
 
 
 if __name__ == '__main__':
     curvature_data, positional_data = get_curvature_and_positional_data()
-
     print(f"Average distance between {avg_dist_n} chambers: {avg_dist}")
-
-    with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.expand_frame_repr', False):
-        print(curvature_data)
-        print(positional_data)
-
     cv2.destroyAllWindows()
