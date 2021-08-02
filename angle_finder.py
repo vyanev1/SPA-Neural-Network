@@ -68,32 +68,6 @@ def sort_contours(conts, sort_by_distance=False, sort_by_top_left=False):
     return conts
 
 
-def get_mid_point(coords_X: list, coords_Y: list, size: int):
-    if size % 2 == 0:
-        mid_x = round((coords_X[int(size/2)] + coords_X[int(size/2 - 1)]) / 2)
-        mid_y = round((coords_Y[int(size/2)] + coords_Y[int(size/2 - 1)]) / 2)
-        return mid_x, mid_y
-    else:
-        mid_x = coords_X[int(size/2)]
-        mid_y = coords_Y[int(size/2)]
-        return mid_x, mid_y
-
-
-def gradient(pt1, pt2) -> float:
-    return (pt2[1] - pt1[1]) / (pt2[0] - pt1[0])
-
-
-def angle(pt1, pt2, pt3) -> float:
-    m1 = gradient(pt1, pt2)
-    m2 = gradient(pt1, pt3)
-    ang_rads = math.atan(abs((m1-m2)/(1 + m1*m2)))
-    return math.degrees(ang_rads)
-
-
-def callback(x):
-    pass
-
-
 def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
     curvature_d, positional_d = [], []
     for exp_date in os.listdir(directory):
