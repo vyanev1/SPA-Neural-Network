@@ -97,7 +97,7 @@ def callback(x):
 def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
     curvature_d, positional_d = [], []
     for exp_date in os.listdir(directory):
-        if exp_date != "23-07-21":
+        if not(exp_date.startswith("23-07-21")):
             continue
         exp_date_path = os.path.join(directory, exp_date)
         for exp_num in os.listdir(exp_date_path):
@@ -204,5 +204,9 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
 if __name__ == '__main__':
     curvature_data, positional_data = get_curvature_and_positional_data()
-    print(f"Average distance between {avg_dist_n} chambers: {avg_dist}")
+    with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.expand_frame_repr', False):
+        print("Curvature data:")
+        print(curvature_data)
+        print("Positional data:")
+        print(positional_data)
     cv2.destroyAllWindows()
