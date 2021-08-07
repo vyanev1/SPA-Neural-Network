@@ -10,6 +10,7 @@ from circle_fit import circle_fit_by_taubin
 directory = os.path.abspath("./Data/Pictures/")
 avg_dist = 0
 avg_dist_n = 0
+use_only_two_markers: bool = True
 
 
 def get_distance(pt1: (int, int), pt2: (int, int)):
@@ -27,6 +28,17 @@ def menger_curvature(a: (int, int), b: (int, int), c: (int, int)):
     side_length2 = get_distance(b, c)
     side_length3 = get_distance(c, a)
     return (2 * abs(double_area(a, b, c))) / (side_length1 * side_length2 * side_length3)
+
+
+def get_mid_point(coords_X: list, coords_Y: list, size: int):
+    if size % 2 == 0:
+        mid_x = round((coords_X[int(size/2)] + coords_X[int(size/2 - 1)]) / 2)
+        mid_y = round((coords_Y[int(size/2)] + coords_Y[int(size/2 - 1)]) / 2)
+        return mid_x, mid_y
+    else:
+        mid_x = coords_X[int(size/2)]
+        mid_y = coords_Y[int(size/2)]
+        return mid_x, mid_y
 
 
 def update_avg_dist(new_dist):
@@ -124,7 +136,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 cnts = list(filter(lambda cnt: cv2.contourArea(cnt) > 50, cnts))
                 cnts = sort_contours(cnts, sort_by_distance=True, sort_by_top_left=True)
 
-                # Get the middle points of all marker areas
+                # Get all marker areas as points
                 blank_img = np.zeros((new_height, new_width, 3), np.uint8)
                 i = 0
                 d = []
@@ -137,13 +149,13 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     d.append({'Chamber': i, 'X-Value': cX, 'Y-Value': cY})
                     # draw the center of the shape on the new image
                     cv2.circle(blank_img, (cX, cY), 1, (255, 255, 255), -1)
-                    cv2.putText(blank_img, f"tile {i}: {(cX, cY)}", (cX, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255))
+                    cv2.putText(blank_img, f"chamber {i}: {(cX, cY)}", (cX + 5, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255))
                     i += 1
 
-                # Get the bending angle in degrees
+                # Create dataframe of coordinates using all marker points
                 df = pd.DataFrame(d)
 
-                # Try to fit circle to points
+                # Try to fit a circle to the points
                 all_points = df.drop('Chamber', axis=1).values[1:]
                 fitted_circle = circle_fit_by_taubin(all_points)
 
@@ -156,11 +168,28 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
                 # Calculate the curvatures
                 curvatures = []
-                for i in range(0, 12, 3):
-                    a = (coords_X[i], coords_Y[i])
-                    b = (coords_X[i + 1], coords_Y[i + 1])
-                    c = (coords_X[i + 2], coords_Y[i + 2])
+                if use_only_two_markers:
+                    a = (coords_X[0], coords_Y[0])
+                    b = get_mid_point(coords_X, coords_Y, len(coords_X))
+                    c = (coords_X[-1], coords_Y[-1])
                     curvatures.append(menger_curvature(a, b, c))
+
+                    blank_img = np.zeros((new_height, new_width, 3), np.uint8)
+                    cv2.putText(blank_img, f"curvature: {menger_curvature(a, b, c)}",
+                                (b[0] - 100, b[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255))
+                    for x, y in (a, b, c):
+                        cv2.circle(blank_img, (x, y), 1, (255, 255, 255), -1)
+                else:
+                    for i in range(0, 12, 3):
+                        a = (coords_X[i], coords_Y[i])
+                        b = (coords_X[i + 1], coords_Y[i + 1])
+                        c = (coords_X[i + 2], coords_Y[i + 2])
+                        curvatures.append(menger_curvature(a, b, c))
+
+                # Debugging:
+                # img = cv2.addWeighted(img, 0.5, blank_img, 1, 0)
+                # cv2.imshow(f"{image_name}", img)
+                # cv2.waitKey(0)
 
                 # Fill the dataframes with the extracted positional and curvature data
                 curvature_d.append({
@@ -168,10 +197,11 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     **{f"curvature {i+1}": curvatures[i] for i in range(len(curvatures))}
                 })
 
+                chambers = [0, 11] if use_only_two_markers else range(2, 12)
                 positional_d.append({
                     "image": image_name,
-                    ** {f"chamber {i+1} X": coords_X[i] - coords_X[0] for i in range(2, 12)},
-                    ** {f"chamber {i+1} Y": coords_Y[i] - coords_Y[0] for i in range(2, 12)}
+                    ** {f"chamber {i+1} X": coords_X[i] - coords_X[0] for i in chambers},
+                    ** {f"chamber {i+1} Y": coords_Y[i] - coords_Y[0] for i in chambers}
                 })
     return pd.DataFrame(curvature_d), pd.DataFrame(positional_d)
 

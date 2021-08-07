@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import scipy.io
 
-from angle_finder import get_curvature_and_positional_data
+from angle_finder import get_curvature_and_positional_data, use_only_two_markers
 
 pressure_data_dir = os.path.abspath("./Data/Pressure Data/")
 
@@ -24,7 +24,8 @@ def split_two_halves(np_array: np.ndarray) -> (np.ndarray, np.ndarray):
 
 def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
     if df_num == 1:
-        return ["pressure", "distance_mm"] + [f"chamber {j+1}" for j in range(2, 12)]
+        chambers = [0, 11] if use_only_two_markers else range(2, 12)
+        return ["pressure", "distance_mm"] + [f"chamber {j+1}" for j in chambers]
     else:
         return list(df.columns)
 
