@@ -6,8 +6,8 @@ import pandas as pd
 from tensorflow.keras import Sequential, regularizers
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
-from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names, INPUT_COLS, \
-    DISTANCE_COL, PRESSURE_COL
+from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names, INPUT_COLUMNS, \
+    DISTANCE, PRESSURE
 
 
 def split_sequence(sequence, n_steps):
@@ -131,11 +131,11 @@ if __name__ == "__main__":
         if df_num == 1:
             for pressure_val, distance in inputs:
                 X_coords_predicted, Y_coords_predicted = list(zip(
-                    *predictions.loc[(predictions[DISTANCE_COL] == distance) & (predictions[PRESSURE_COL] == pressure_val)]
-                    .drop(INPUT_COLS, axis=1).values.flatten()
+                    *predictions.loc[(predictions[DISTANCE] == distance) & (predictions[PRESSURE] == pressure_val)]
+                    .drop(INPUT_COLUMNS, axis=1).values.flatten()
                 ))
 
-                _, y = split_input_output(df.loc[(df[DISTANCE_COL] == distance) & (df[PRESSURE_COL] == pressure_val)])
+                _, y = split_input_output(df.loc[(df[DISTANCE] == distance) & (df[PRESSURE] == pressure_val)])
                 X_coords_actual, Y_coords_actual = split_two_halves(np.mean(y, axis=0))
 
                 draw_predictions_vs_actual_points(
