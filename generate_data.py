@@ -8,11 +8,14 @@ import scipy.io
 from angle_finder import get_curvature_and_positional_data, use_only_two_markers
 
 pressure_data_dir = os.path.abspath("./Data/Pressure Data/")
+PRESSURE_COL = "pressure"
+DISTANCE_COL = "distance_mm"
+INPUT_COLS = [PRESSURE_COL, DISTANCE_COL]
 
 
 def split_input_output(pressure_data: pd.DataFrame) -> (np.ndarray, np.ndarray):
-    input_data = pressure_data[["pressure", "distance_mm"]].values
-    output_data = pressure_data.drop(["pressure", "distance_mm"], axis=1).values
+    input_data = pressure_data[INPUT_COLS].values
+    output_data = pressure_data.drop(INPUT_COLS, axis=1).values
     return input_data, output_data
 
 
@@ -25,7 +28,7 @@ def split_two_halves(np_array: np.ndarray) -> (np.ndarray, np.ndarray):
 def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
     if df_num == 1:
         chambers = [0, 11] if use_only_two_markers else range(2, 12)
-        return ["pressure", "distance_mm"] + [f"chamber {j+1}" for j in chambers]
+        return INPUT_COLS + [f"chamber {j+1}" for j in chambers]
     else:
         return list(df.columns)
 
@@ -50,18 +53,18 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
                 force_all_timestamps = [item.flat[0] for item in mat_contents["ForceData"]]
 
                 exp_pressure_curvature_dict = {
-                    "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
-                    "distance_mm": int(exp_date.split("_", 1)[-1].replace('mm', '')),
+                    PRESSURE_COL: round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
+                    DISTANCE_COL: int(exp_date.split("_", 1)[-1].replace('mm', '')),
                     **curvature_data.drop("image", axis=1).iloc[row_num].to_dict()
                 }
                 exp_pressure_position_dict = {
-                    "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
-                    "distance_mm": int(exp_date.split("_", 1)[-1].replace('mm', '')),
+                    PRESSURE_COL: round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
+                    DISTANCE_COL: int(exp_date.split("_", 1)[-1].replace('mm', '')),
                     **positional_data.drop("image", axis=1).iloc[row_num].to_dict()
                 }
                 exp_pressure_force_dict = {
-                    "pressure": round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
-                    "distance_mm": int(exp_date.split("_", 1)[-1].replace('mm', '')),
+                    PRESSURE_COL: round(sum(pressure_all_timestamps) / len(pressure_all_timestamps)),
+                    DISTANCE_COL: int(exp_date.split("_", 1)[-1].replace('mm', '')),
                     "force": max(0, sum(force_all_timestamps) / len(force_all_timestamps))
                 }
 
