@@ -5,7 +5,7 @@ import numpy as np
 from elastica import BaseSystemCollection, Constraints, Forcing, CallBacks, SlenderBodyTheory, \
     CallBackBaseClass, PositionVerlet, integrate, CosseratRod, OneEndFixedRod, EndpointForces, GravityForces
 
-from continuum_flagella_postprocessing import plot_velocity, plot_video, compute_projected_velocity
+from spa_simulation_postprocessing import plot_velocity, plot_video, compute_projected_velocity
 
 
 class SoftPneumaticActuatorSimulator(BaseSystemCollection, Constraints, Forcing, CallBacks):
