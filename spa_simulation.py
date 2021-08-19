@@ -90,12 +90,12 @@ def run_actuator_sim(b_coeff, PLOT_FIGURE=False, SAVE_FIGURE=False, SAVE_VIDEO=F
     # )
 
     # TODO: Determine slender body forces
-    fluid_density = 1.0
-    reynolds_number = 1e-4
-    dynamic_viscosity = (fluid_density * base_length * base_length) / (period * reynolds_number)
-    actuator_sim.add_forcing_to(shearable_rod).using(
-        SlenderBodyTheory, dynamic_viscosity=dynamic_viscosity
-    )
+    # fluid_density = 1.0
+    # reynolds_number = 1e-4
+    # dynamic_viscosity = (fluid_density * base_length * base_length) / (period * reynolds_number)
+    # actuator_sim.add_forcing_to(shearable_rod).using(
+    #     SlenderBodyTheory, dynamic_viscosity=dynamic_viscosity
+    # )
 
     # Add call backs
     class SoftPneumaticActuatorCallBack(CallBackBaseClass):
@@ -138,13 +138,13 @@ def run_actuator_sim(b_coeff, PLOT_FIGURE=False, SAVE_FIGURE=False, SAVE_VIDEO=F
         plot_velocity(pp_list, period, filename_plot, SAVE_FIGURE)
 
         if SAVE_VIDEO:
-            filename_video = "soft_pneumatic_actuator.mp4"
+            filename_video = "spa_simulation.mp4"
             plot_video(pp_list, video_name=filename_video, margin=0.2, fps=60)
 
     if SAVE_RESULTS:
         import pickle
 
-        filename = "soft_pneumatic_actuator.dat"
+        filename = "spa_simulation.dat"
         file = open(filename, "wb")
         pickle.dump(pp_list, file)
         file.close()

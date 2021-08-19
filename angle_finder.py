@@ -10,7 +10,7 @@ from circle_fit import circle_fit_by_taubin
 directory = os.path.abspath("./Data/Pictures/")
 avg_dist = 0
 avg_dist_n = 0
-use_only_two_markers: bool = True
+two_markers = False
 
 
 def get_distance(pt1: (int, int), pt2: (int, int)):
@@ -168,7 +168,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
                 # Calculate the curvatures
                 curvatures = []
-                if use_only_two_markers:
+                if two_markers:
                     a = (coords_X[0], coords_Y[0])
                     b = get_mid_point(coords_X, coords_Y, len(coords_X))
                     c = (coords_X[-1], coords_Y[-1])
@@ -197,7 +197,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     **{f"curvature {i+1}": curvatures[i] for i in range(len(curvatures))}
                 })
 
-                chambers = [0, 11] if use_only_two_markers else range(2, 12)
+                chambers = [0, 11] if two_markers else range(2, 12)
                 positional_d.append({
                     "image": image_name,
                     ** {f"chamber {i+1} X": coords_X[i] - coords_X[0] for i in chambers},

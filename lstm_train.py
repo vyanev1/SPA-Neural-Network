@@ -1,13 +1,19 @@
+import os
 from typing import List
 
 import cv2
 import numpy as np
 import pandas as pd
+from keras import backend as k
+from keras.models import load_model
+from matplotlib import pyplot as plt
 from tensorflow.keras import Sequential, regularizers
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
+
+from angle_finder import two_markers
 from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names, INPUT_COLUMNS, \
-    DISTANCE, PRESSURE
+    DISTANCE, PRESSURE, FORCE
 
 
 def split_sequence(sequence, n_steps):
@@ -105,15 +111,24 @@ if __name__ == "__main__":
         # Get the dataset
         df = dfs[df_num]
 
-        # Shuffle the data
-        df_shuffled = df.sample(frac=1).reset_index(drop=True)
+        model_file_name = f"saved_models/model_{df_num}_{'two_markers' if two_markers else 'all_markers'}"
+        if os.path.exists(model_file_name):
+            k.clear_session()
+            # Load the model from the saved file
+            model = load_model(model_file_name, compile=False)
+        else:
+            # Shuffle the data
+            df_shuffled = df.sample(frac=1).reset_index(drop=True)
 
-        # split into input/ouput samples
-        X, y = split_input_output(df_shuffled)
-        print(X.shape, y.shape)
+            # split into input/ouput samples
+            X, y = split_input_output(df_shuffled)
+            print(X.shape, y.shape)
 
-        # Format the data and train the neural network
-        model = train_model(X, y)
+            # Format the data and train the neural network
+            model = train_model(X, y)
+
+            # Save the model
+            model.save(model_file_name)
 
         # Generate a dataframe of predictions for all inputs
         input_pressures = [0, 1, 2, 3, 4, 5, 6]
@@ -142,3 +157,51 @@ if __name__ == "__main__":
                     X_coords_predicted, Y_coords_predicted,
                     X_coords_actual, Y_coords_actual
                 )
+        elif df_num == 2:
+            distances = [10, 20]
+            fig, axs = plt.subplots(len(distances), 1)
+            for i in range(len(distances)):
+                pressure_force_measured = df[df[DISTANCE] == distances[i]] \
+                    .drop(DISTANCE, axis=1) \
+                    .groupby(PRESSURE, as_index=False).mean()
+
+                pressure_force_predicted = predictions[predictions[DISTANCE] == distances[i]] \
+                    .drop(DISTANCE, axis=1) \
+                    .groupby(PRESSURE, as_index=False).mean()
+
+                prediction_error = abs(pressure_force_predicted[FORCE].values - pressure_force_measured[FORCE].values)
+
+                ax2 = axs[i].twinx()
+                ax2.fill_between(
+                    pressure_force_measured[PRESSURE].values,
+                    prediction_error,
+                    color="0.8",
+                    alpha=0.3,
+                    label="Prediction Error"
+                )
+                ax2.set_ylabel('Prediction error (N)')
+                ax2.set_xlim(0, 6)
+                ax2.set_ylim(0, 0.1)
+                ax2.legend(loc='upper right')
+
+                axs[i].plot(
+                    pressure_force_measured[PRESSURE].values,
+                    pressure_force_measured[FORCE].values,
+                    "r-",
+                    label="Measured force",
+                )
+                axs[i].plot(
+                    pressure_force_predicted[PRESSURE].values,
+                    pressure_force_predicted[FORCE].values,
+                    "b-",
+                    label="Predicted force"
+                )
+                axs[i].grid(True)
+                axs[i].set_title(f'Distance: {distances[i]} mm')
+                axs[i].set_xlabel('Pressure (pA)')
+                axs[i].set_ylabel('Force (N)')
+                axs[i].set_xlim(0, 6)
+                axs[i].set_ylim(0, 1)
+                axs[i].legend(loc='upper left')
+            fig.tight_layout()
+            plt.show()
