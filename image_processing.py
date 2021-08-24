@@ -117,7 +117,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
                 # Set lower and upper range for the green marker
                 lower_range = np.array([70, 65, 115])
-                upper_range = np.array([95, 255, 255])
+                upper_range = np.array([88, 255, 255])
 
                 # Get only the marker areas from the image using a color threshold
                 mask = cv2.inRange(cv2.cvtColor(img, cv2.COLOR_BGR2HSV), lower_range, upper_range)
@@ -127,13 +127,14 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 mask = cv2.dilate(mask, kernel, iterations=1)
 
                 # Debugging
-                # img[mask == 255] = (0, 0, 255)
-                # cv2.imshow(f"{image_name}", img)
-                # cv2.waitKey(0)
+                if image_name in images_to_adjust:
+                    img[mask == 255] = (0, 0, 255)
+                    cv2.imshow(f"{image_name}", img)
+                    cv2.waitKey(0)
 
                 # Find contours in the thresholded image
                 cnts, hierarchy = cv2.findContours(mask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                cnts = list(filter(lambda cnt: cv2.contourArea(cnt) > 50, cnts))
+                cnts = list(filter(lambda cnt: cv2.contourArea(cnt) > 100, cnts))
                 cnts = sort_contours(cnts, sort_by_distance=True, sort_by_top_left=True)
 
                 # Get all marker areas as points
