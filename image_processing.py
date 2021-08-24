@@ -27,7 +27,7 @@ def menger_curvature(a: (int, int), b: (int, int), c: (int, int)):
     side_length1 = get_distance(a, b)
     side_length2 = get_distance(b, c)
     side_length3 = get_distance(c, a)
-    return (2 * abs(double_area(a, b, c))) / (side_length1 * side_length2 * side_length3)
+    return float((2 * abs(double_area(a, b, c))) / (side_length1 * side_length2 * side_length3))
 
 
 def get_mid_point(coords_X: list, coords_Y: list, size: int):
@@ -165,7 +165,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
                 # Extract X and Y coordinates
                 coords_X, coords_Y = df['X-Value'].tolist(), df['Y-Value'].tolist()
-                print(image_name, coords_X, coords_Y)
+                print(f"{exp_date}/{exp_num}/{image_name} - ", coords_X, coords_Y)
 
                 # Calculate the curvatures
                 curvatures = []

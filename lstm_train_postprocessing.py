@@ -5,6 +5,8 @@ from pandas import DataFrame
 
 import numpy as np
 
+from image_processing import two_markers
+
 input_distances = [10, 20]
 input_pressures = [0, 1, 2, 3, 4, 5, 6]
 
@@ -111,6 +113,8 @@ def plot_curvature_predictions(df: DataFrame, predictions: DataFrame):
             .drop(INPUT_COLUMNS, axis=1)
         fig, axs = plt.subplots(predicted_curvatures.shape[1], 1)
         fig.suptitle(f'Distance: {distance} mm')
+        if two_markers:
+            axs = [axs]
         for i in range(predicted_curvatures.shape[1]):
             prediction_error = abs(predicted_curvatures[f'curvature {i+1}'].values
                                    - measured_curvatures[f'curvature {i+1}'].values)
@@ -130,12 +134,12 @@ def plot_curvature_predictions(df: DataFrame, predictions: DataFrame):
             axs[i].plot(
                 input_pressures,
                 predicted_curvatures[f'curvature {i+1}'].values,
-                label=f'Predicted curvature for chambers [{i * 3 + 1} - {i * 3 + 3}]'
+                label=f'Predicted curvature' + (f'for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not two_markers else '')
             )
             axs[i].plot(
                 input_pressures,
                 measured_curvatures[f'curvature {i+1}'].values,
-                label=f'Measured curvature for chambers [{i * 3 + 1} - {i * 3 + 3}]'
+                label=f'Measured curvature' + (f'for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not two_markers else '')
             )
             axs[i].grid(True)
             axs[i].set_xlabel('Pressure (pA)')

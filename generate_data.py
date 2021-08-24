@@ -18,7 +18,7 @@ INPUT_COLUMNS = [PRESSURE, DISTANCE]
 def split_input_output(pressure_data: pd.DataFrame) -> (np.ndarray, np.ndarray):
     input_data = pressure_data[INPUT_COLUMNS].values
     output_data = pressure_data.drop(INPUT_COLUMNS, axis=1).values
-    return input_data, output_data
+    return np.asarray(input_data, dtype=np.float32), np.asarray(output_data, dtype=np.float32)
 
 
 def split_two_halves(np_array: np.ndarray) -> (np.ndarray, np.ndarray):
@@ -36,11 +36,12 @@ def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
 
 
 def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
-    df_file_name = f"saved_dataframes/combined_data_{date.today().strftime('%d-%m-%Y')}.xlsx"
+    df_file_name = f"saved_dataframes/combined_data_{'two_markers' if two_markers else 'all_markers'}" \
+                   f"_{date.today().strftime('%d-%m-%Y')}.xlsx"
     if os.path.exists(df_file_name):
-        pressure_curvature_df = pd.read_excel(df_file_name, sheet_name='pressure_curvature')
-        pressure_position_df = pd.read_excel(df_file_name, sheet_name='pressure_position')
-        pressure_force_df = pd.read_excel(df_file_name, sheet_name='pressure_force')
+        pressure_curvature_df = pd.read_excel(df_file_name, sheet_name='pressure_curvature', dtype=np.float32)
+        pressure_position_df = pd.read_excel(df_file_name, sheet_name='pressure_position', dtype=np.float32)
+        pressure_force_df = pd.read_excel(df_file_name, sheet_name='pressure_force', dtype=np.float32)
         return pressure_curvature_df, pressure_position_df, pressure_force_df
     else:
         curvature_data, positional_data = get_curvature_and_positional_data()

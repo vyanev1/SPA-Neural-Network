@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 from keras import backend as k
 from keras.models import load_model
-from tensorflow.keras import Sequential, regularizers
+from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 
@@ -82,11 +82,11 @@ def train_model(X: np.ndarray, y: np.ndarray):
 
     # define model
     model = Sequential()
-    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal', input_shape=(1, features)))
-    model.add(Dense(200, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.0001)))
-    model.add(Dense(150, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.0001)))
-    model.add(Dense(100, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.0001)))
-    model.add(Dense(50, activation='relu', kernel_initializer='he_normal', kernel_regularizer=regularizers.l2(0.0001)))
+    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal'))
+    model.add(Dense(200, activation='relu', kernel_initializer='he_normal'))
+    model.add(Dense(150, activation='relu', kernel_initializer='he_normal'))
+    model.add(Dense(100, activation='relu', kernel_initializer='he_normal'))
+    model.add(Dense(50, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(y_train.shape[1]))
 
     # compile the model
