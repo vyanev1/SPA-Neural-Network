@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
-from angle_finder import get_curvature_and_positional_data, two_markers
+from image_processing import get_curvature_and_positional_data, two_markers
 
 pressure_data_dir = os.path.abspath("./Data/Pressure Data/")
 PRESSURE = "pressure"

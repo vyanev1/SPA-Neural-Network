@@ -10,7 +10,7 @@ from tensorflow.keras import Sequential, regularizers
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 
-from angle_finder import two_markers
+from image_processing import two_markers
 from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names
 from lstm_train_postprocessing import plot_force_predictions, plot_positional_predictions, plot_curvature_predictions
 
