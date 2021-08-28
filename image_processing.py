@@ -10,7 +10,7 @@ from circle_fit import circle_fit_by_taubin
 directory = os.path.abspath("./Data/Pictures/")
 avg_dist = 0
 avg_dist_n = 0
-two_markers = False
+three_markers = False
 
 
 def get_distance(pt1: (int, int), pt2: (int, int)):
@@ -157,11 +157,9 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 df = pd.DataFrame(d)
 
                 # Try to fit a circle to the points
-                all_points = df.drop('Chamber', axis=1).values[1:]
-                fitted_circle = circle_fit_by_taubin(all_points)
-
-                # Draw the fitted circle on the image
-                cv2.circle(blank_img, (int(fitted_circle[0][0]), int(fitted_circle[0][1])), int(fitted_circle[1]), (255,255, 255), 1)
+                # all_points = df.drop('Chamber', axis=1).values[1:]
+                # fitted_circle = circle_fit_by_taubin(all_points)
+                # cv2.circle(blank_img, (int(fitted_circle[0][0]), int(fitted_circle[0][1])), int(fitted_circle[1]), (255,255, 255), 1)
 
                 # Extract X and Y coordinates
                 coords_X, coords_Y = df['X-Value'].tolist(), df['Y-Value'].tolist()
@@ -169,7 +167,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
                 # Calculate the curvatures
                 curvatures = []
-                if two_markers:
+                if three_markers:
                     a = (coords_X[0], coords_Y[0])
                     b = get_mid_point(coords_X, coords_Y, len(coords_X))
                     c = (coords_X[-1], coords_Y[-1])
@@ -198,7 +196,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     **{f"curvature {i+1}": curvatures[i] for i in range(len(curvatures))}
                 })
 
-                chambers = [0, 11] if two_markers else range(2, 12)
+                chambers = [0, 6, 11] if three_markers else range(2, 12)
                 positional_d.append({
                     "image": image_name,
                     ** {f"chamber {i+1} X": coords_X[i] - coords_X[0] for i in chambers},

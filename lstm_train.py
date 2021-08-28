@@ -10,7 +10,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Dense
 from tensorflow.keras.layers import LSTM
 
-from image_processing import two_markers
+from image_processing import three_markers
 from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names
 from lstm_train_postprocessing import plot_force_predictions, plot_positional_predictions, plot_curvature_predictions
 
@@ -82,7 +82,7 @@ def train_model(X: np.ndarray, y: np.ndarray):
 
     # define model
     model = Sequential()
-    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal'))
+    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal', input_shape=(1, features)))
     model.add(Dense(200, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(150, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(100, activation='relu', kernel_initializer='he_normal'))
@@ -110,7 +110,7 @@ if __name__ == "__main__":
         # Get the dataset
         df = dfs[df_num]
 
-        model_file_name = f"saved_models/model_{df_num}_{'two_markers' if two_markers else 'all_markers'}"
+        model_file_name = f"saved_models/model_{df_num}_{'three_markers' if three_markers else 'all_markers'}"
         if os.path.exists(model_file_name):
             k.clear_session()
             # Load the model from the saved file
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
         # Generate a dataframe of predictions for all inputs
         input_pressures = [0, 1, 2, 3, 4, 5, 6]
-        input_distances = [10, 20]
+        input_distances = [10, 20, 30]
         inputs = [(pressure, distance) for distance in input_distances for pressure in input_pressures]
 
         predictions = generate_predictions_df(model, inputs, get_column_names(df, df_num))

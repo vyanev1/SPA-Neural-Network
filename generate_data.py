@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
-from image_processing import get_curvature_and_positional_data, two_markers
+from image_processing import get_curvature_and_positional_data, three_markers
 
 pressure_data_dir = os.path.abspath("./Data/Pressure Data/")
 PRESSURE = "pressure"
@@ -29,14 +29,14 @@ def split_two_halves(np_array: np.ndarray) -> (np.ndarray, np.ndarray):
 
 def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
     if df_num == 1:
-        chambers = [0, 11] if two_markers else range(2, 12)
+        chambers = [0, 6, 11] if three_markers else range(2, 12)
         return INPUT_COLUMNS + [f"chamber {j+1}" for j in chambers]
     else:
         return list(df.columns)
 
 
 def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
-    df_file_name = f"saved_dataframes/combined_data_{'two_markers' if two_markers else 'all_markers'}" \
+    df_file_name = f"saved_dataframes/combined_data_{'three_markers' if three_markers else 'all_markers'}" \
                    f"_{date.today().strftime('%d-%m-%Y')}.xlsx"
     if os.path.exists(df_file_name):
         pressure_curvature_df = pd.read_excel(df_file_name, sheet_name='pressure_curvature', dtype=np.float32)
