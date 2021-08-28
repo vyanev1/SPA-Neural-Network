@@ -1,13 +1,11 @@
+import numpy as np
 from matplotlib import pyplot as plt
-
-from generate_data import DISTANCE, PRESSURE, FORCE, INPUT_COLUMNS, split_input_output, split_two_halves
 from pandas import DataFrame
 
-import numpy as np
-
+from generate_data import DISTANCE, PRESSURE, FORCE, INPUT_COLUMNS, split_input_output, split_two_halves
 from image_processing import three_markers
 
-input_distances = [10, 20, 30]
+input_distances = [10, 20]
 input_pressures = [0, 1, 2, 3, 4, 5, 6]
 
 

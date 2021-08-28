@@ -1,7 +1,6 @@
 import os
 from typing import List
 
-import cv2
 import numpy as np
 import pandas as pd
 from keras import backend as k
@@ -15,20 +14,6 @@ from generate_data import get_combined_data, split_two_halves, split_input_outpu
 from lstm_train_postprocessing import plot_force_predictions, plot_positional_predictions, plot_curvature_predictions
 
 
-def split_sequence(sequence, n_steps):
-    x = list()
-    for i in range(len(sequence)):
-        # find the end of this pattern
-        end_ix = i + n_steps
-        # check if we are beyond the sequence
-        if end_ix > len(sequence):
-            break
-        # gather input and output parts of the pattern
-        seq_x = sequence[i:]
-        x.append(seq_x)
-    return np.asarray(x)
-
-
 def split_train_test(X_in: np.ndarray, y_in: np.ndarray, train_p: float):
     train_size = int(X_in.shape[0] * train_p)
 
@@ -36,21 +21,6 @@ def split_train_test(X_in: np.ndarray, y_in: np.ndarray, train_p: float):
     train_Y, test_Y = y_in[:train_size], y_in[train_size:]
 
     return train_X, test_X, train_Y, test_Y
-
-
-def draw_predictions_vs_actual_points(X_coords_predicted, Y_coords_predicted, X_coords_actual, Y_coords_actual):
-    width, height = 1280, 720
-    init_X, init_Y = 0.6 * width, 0.2 * height
-    blank_img = np.zeros((height, width, 3), np.uint8)
-    for i in range(len(X_coords_predicted)):
-        cX_p = int(X_coords_predicted[i] + init_X)
-        cY_p = int(Y_coords_predicted[i] + init_Y)
-        cX_a = int(X_coords_actual[i] + init_X)
-        cY_a = int(Y_coords_actual[i] + init_Y)
-        cv2.circle(blank_img, (cX_a, cY_a), 1, (125, 125, 125), -1)  # draw actual points in grey color
-        cv2.circle(blank_img, (cX_p, cY_p), 1, (255, 255, 255), -1)  # draw predicted points in white color
-    cv2.imshow(f"predicted position", blank_img)
-    cv2.waitKey(0)
 
 
 def generate_predictions_df(model, inputs, column_names: List[str]):
@@ -82,7 +52,7 @@ def train_model(X: np.ndarray, y: np.ndarray):
 
     # define model
     model = Sequential()
-    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal', input_shape=(1, features)))
+    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(200, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(150, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(100, activation='relu', kernel_initializer='he_normal'))
@@ -131,7 +101,7 @@ if __name__ == "__main__":
 
         # Generate a dataframe of predictions for all inputs
         input_pressures = [0, 1, 2, 3, 4, 5, 6]
-        input_distances = [10, 20, 30]
+        input_distances = [10, 20]
         inputs = [(pressure, distance) for distance in input_distances for pressure in input_pressures]
 
         predictions = generate_predictions_df(model, inputs, get_column_names(df, df_num))
