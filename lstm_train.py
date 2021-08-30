@@ -11,7 +11,8 @@ from tensorflow.keras.layers import LSTM
 
 from image_processing import three_markers
 from generate_data import get_combined_data, split_two_halves, split_input_output, get_column_names
-from lstm_train_postprocessing import plot_force_predictions, plot_positional_predictions, plot_curvature_predictions
+from lstm_train_postprocessing import plot_force_predictions, plot_positional_predictions, plot_curvature_predictions, \
+    plot_positional_errors
 
 
 def split_train_test(X_in: np.ndarray, y_in: np.ndarray, train_p: float):
@@ -52,7 +53,7 @@ def train_model(X: np.ndarray, y: np.ndarray):
 
     # define model
     model = Sequential()
-    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal'))
+    model.add(LSTM(250, activation='relu', kernel_initializer='he_normal', input_shape=(1, features)))
     model.add(Dense(200, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(150, activation='relu', kernel_initializer='he_normal'))
     model.add(Dense(100, activation='relu', kernel_initializer='he_normal'))
@@ -115,5 +116,6 @@ if __name__ == "__main__":
             plot_curvature_predictions(df, predictions)
         elif df_num == 1:
             plot_positional_predictions(df, predictions)
+            plot_positional_errors(df, predictions)
         elif df_num == 2:
             plot_force_predictions(df, predictions)

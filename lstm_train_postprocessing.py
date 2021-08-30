@@ -11,6 +11,8 @@ input_pressures = [0, 1, 2, 3, 4, 5, 6]
 
 def plot_force_predictions(df: DataFrame, predictions: DataFrame):
     fig, axs = plt.subplots(1, len(input_distances))
+    if len(input_distances) == 1:
+        axs = [axs]
     for i in range(len(input_distances)):
         pressure_force_measured = df[df[DISTANCE] == input_distances[i]] \
             .drop(DISTANCE, axis=1) \
@@ -102,6 +104,28 @@ def plot_positional_predictions(df: DataFrame, predictions: DataFrame):
         plt.show()
 
 
+def plot_positional_errors(df: DataFrame, predictions: DataFrame):
+    for distance in input_distances:
+        error_df = DataFrame(columns=['Pressure (pA)', 'Error (X Axis)', 'Error (Y Axis)'])
+        for pressure_val in input_pressures:
+            X_coords_predicted, Y_coords_predicted = np.asarray(list(zip(
+                *predictions.loc[(predictions[DISTANCE] == distance) & (predictions[PRESSURE] == pressure_val)]
+                .drop(INPUT_COLUMNS, axis=1).values.flatten()
+            )))
+
+            _, y = split_input_output(df.loc[(df[DISTANCE] == distance) & (df[PRESSURE] == pressure_val)])
+            X_coords_actual, Y_coords_actual = split_two_halves(np.mean(y, axis=0))
+
+            error_x = np.mean(abs(X_coords_predicted - X_coords_actual))
+            error_y = np.mean(abs(Y_coords_predicted - Y_coords_actual))
+
+            error_df = error_df.append(
+                dict(zip(error_df.columns, [pressure_val, error_x, error_y])),
+                ignore_index=True
+            )
+        error_df.plot(x='Pressure (pA)', ylabel='Error (rads)', xlim=(0, 6), ylim=(0, 5), kind='bar')
+
+
 def plot_curvature_predictions(df: DataFrame, predictions: DataFrame):
     for distance in input_distances:
         predicted_curvatures = predictions.loc[(predictions[DISTANCE] == distance)] \
@@ -132,12 +156,12 @@ def plot_curvature_predictions(df: DataFrame, predictions: DataFrame):
             axs[i].plot(
                 input_pressures,
                 predicted_curvatures[f'curvature {i+1}'].values,
-                label=f'Predicted curvature' + (f'for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not three_markers else '')
+                label=f'Predicted curvature' + (f' for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not three_markers else '')
             )
             axs[i].plot(
                 input_pressures,
                 measured_curvatures[f'curvature {i+1}'].values,
-                label=f'Measured curvature' + (f'for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not three_markers else '')
+                label=f'Measured curvature' + (f' for chambers [{i * 3 + 1} - {i * 3 + 3}]' if not three_markers else '')
             )
             axs[i].grid(True)
             axs[i].set_xlabel('Pressure (pA)')
