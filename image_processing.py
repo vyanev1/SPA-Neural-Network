@@ -80,7 +80,7 @@ def sort_contours(conts, sort_by_distance=False, sort_by_top_left=False):
     return conts
 
 
-def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
+def get_curvature_and_positional_data(three_markers: bool) -> (pd.DataFrame, pd.DataFrame):
     curvature_d, positional_d = [], []
     for exp_date in os.listdir(directory):
         if not(exp_date.startswith("23-07-21")):
@@ -116,7 +116,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     cv2.destroyAllWindows()
 
                 # Set lower and upper range for the green marker
-                lower_range = np.array([70, 65, 115])
+                lower_range = np.array([65, 50, 150])
                 upper_range = np.array([88, 255, 255])
 
                 # Get only the marker areas from the image using a color threshold
@@ -138,7 +138,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                 cnts = sort_contours(cnts, sort_by_distance=True, sort_by_top_left=True)
 
                 # Get all marker areas as points
-                blank_img = np.zeros((new_height, new_width, 3), np.uint8)
+                blank_img = np.zeros((new_height, new_width), np.uint8)
                 i = 0
                 d = []
                 for c in cnts:
@@ -149,9 +149,15 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
                     # fill the data with the coords
                     d.append({'Chamber': i, 'X-Value': cX, 'Y-Value': cY})
                     # draw the center of the shape on the new image
-                    cv2.circle(blank_img, (cX, cY), 1, (255, 255, 255), -1)
-                    cv2.putText(blank_img, f"chamber {i}: {(cX, cY)}", (cX + 5, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255))
+                    cv2.circle(blank_img, (cX, cY), 3, (255, 255, 255), -1)
+                    # cv2.putText(blank_img, f"chamber {i}: {(cX, cY)}", (cX + 5, cY), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0, 0, 255))
                     i += 1
+
+                # Debugging
+                if image_name in images_to_adjust:
+                    img[blank_img == 255] = (0, 0, 255)
+                    cv2.imshow(f"{image_name}", img)
+                    cv2.waitKey(0)
 
                 # Create dataframe of coordinates using all marker points
                 df = pd.DataFrame(d)
@@ -206,7 +212,7 @@ def get_curvature_and_positional_data() -> (pd.DataFrame, pd.DataFrame):
 
 
 if __name__ == '__main__':
-    curvature_data, positional_data = get_curvature_and_positional_data()
+    curvature_data, positional_data = get_curvature_and_positional_data(three_markers)
     with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.expand_frame_repr', False):
         print("Curvature data:")
         print(curvature_data)

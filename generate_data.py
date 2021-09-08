@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import scipy.io
 
-from image_processing import get_curvature_and_positional_data, three_markers
+from image_processing import get_curvature_and_positional_data
 
 pressure_data_dir = os.path.abspath("./Data/Pressure Data/")
 PRESSURE = "pressure"
@@ -27,7 +27,7 @@ def split_two_halves(np_array: np.ndarray) -> (np.ndarray, np.ndarray):
     return flat_list[:half], flat_list[half:]
 
 
-def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
+def get_column_names(df: pd.DataFrame, df_num: int, three_markers: bool) -> List[str]:
     if df_num == 1:
         chambers = [0, 6, 11] if three_markers else range(2, 12)
         return INPUT_COLUMNS + [f"chamber {j+1}" for j in chambers]
@@ -35,7 +35,7 @@ def get_column_names(df: pd.DataFrame, df_num: int) -> List[str]:
         return list(df.columns)
 
 
-def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
+def get_combined_data(three_markers: bool) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     df_file_name = f"saved_dataframes/combined_data_{'three_markers' if three_markers else 'all_markers'}" \
                    f"_{date.today().strftime('%d-%m-%Y')}.xlsx"
     if os.path.exists(df_file_name):
@@ -44,7 +44,7 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         pressure_force_df = pd.read_excel(df_file_name, sheet_name='pressure_force', dtype=np.float32)
         return pressure_curvature_df, pressure_position_df, pressure_force_df
     else:
-        curvature_data, positional_data = get_curvature_and_positional_data()
+        curvature_data, positional_data = get_curvature_and_positional_data(three_markers)
         pressure_curvature_d = []
         pressure_position_d = []
         pressure_force_d = []
@@ -103,7 +103,7 @@ def get_combined_data() -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
 
 
 if __name__ == "__main__":
-    pressure_curvature, pressure_position, pressure_force = get_combined_data()
+    pressure_curvature, pressure_position, pressure_force = get_combined_data(three_markers=True)
 
     inputs, positional_data = split_input_output(pressure_position)
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
         coords = [(int(x), int(y)) for x, y in list(zip(X_coords, Y_coords))]
         data.append(list(inputs[i]) + coords)
 
-    pressure_position_formatted = pd.DataFrame(data, columns=get_column_names(pressure_position, 1))
+    pressure_position_formatted = pd.DataFrame(data, columns=get_column_names(pressure_position, 1, three_markers=True))
 
     with pd.option_context('display.max_rows', None, 'display.max_columns', None, 'display.expand_frame_repr', False):
         print("Actual curvatures:")
